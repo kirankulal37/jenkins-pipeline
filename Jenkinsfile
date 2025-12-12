@@ -1,38 +1,51 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
+  environment {
+    DEPLOY_DIR = "/tmp/demo-deploy"
+  }
 
-        stage('Run Tests') {
-            steps {
-                sh 'npm test || true'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'CI=false npm run build'
-            }
-        }
-
-        stage('Archive Build Artifacts') {
-            steps {
-                archiveArtifacts artifacts: 'build/**', fingerprint: true
-            }
-        }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
     }
 
-    post {
-        success {
-            echo "Build completed successfully!"
-        }
-        failure {
-            echo "Build failed!"
-        }
+    stage('Install') {
+      steps {
+        sh 'node --version || true'
+        sh 'npm ci'
+      }
     }
+
+    stage('Test') {
+      steps {
+        sh 'npm test -- --watchAll=false || true'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'npm run build'
+        archiveArtifacts artifacts: 'build/**', fingerprint: true
+      }
+    }
+
+    stage('Deploy (demo)') {
+      steps {
+        sh '''
+          echo "Preparing demo deploy dir: ${DEPLOY_DIR}"
+          rm -rf ${DEPLOY_DIR} || true
+          mkdir -p ${DEPLOY_DIR}
+          cp -r build/* ${DEPLOY_DIR}/
+          echo "Files copied to ${DEPLOY_DIR}:"
+          ls -la ${DEPLOY_DIR} | sed -n '1,200p'
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo "Demo pipeline finished SUCCESS" }
+    failure { echo "Demo pipeline FAILED" }
+  }
 }
