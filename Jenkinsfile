@@ -1,18 +1,15 @@
 pipeline {
   agent any
 
-  environment {
-    DEPLOY_DIR = "/tmp/demo-deploy"
-  }
-
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage('Install') {
       steps {
-        sh 'node --version || true'
         sh 'npm ci'
       }
     }
@@ -30,22 +27,20 @@ pipeline {
       }
     }
 
-    stage('Deploy (demo)') {
+    stage('Deploy to Vercel') {
       steps {
-        sh '''
-          echo "Preparing demo deploy dir: ${DEPLOY_DIR}"
-          rm -rf ${DEPLOY_DIR} || true
-          mkdir -p ${DEPLOY_DIR}
-          cp -r build/* ${DEPLOY_DIR}/
-          echo "Files copied to ${DEPLOY_DIR}:"
-          ls -la ${DEPLOY_DIR} | sed -n '1,200p'
-        '''
+        withCredentials([string(credentialsId: 'VERCEL_TOKEN', variable: 'VERCEL_TOKEN')]) {
+          sh '''
+            echo "Deploying to Vercel..."
+            vercel deploy --prod --token=$VERCEL_TOKEN --yes
+          '''
+        }
       }
     }
   }
 
   post {
-    success { echo "Demo pipeline finished SUCCESS" }
-    failure { echo "Demo pipeline FAILED" }
+    success { echo "CI/CD pipeline successfully deployed to Vercel 🎉" }
+    failure { echo "Pipeline failed ❌" }
   }
 }
