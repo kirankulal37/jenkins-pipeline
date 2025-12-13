@@ -40,7 +40,7 @@ pipeline {
   }
 
   post {
-    success { echo "CI/CD pipeline successfully deployed to Vercel 🎉" }
-    failure { echo "Pipeline failed ❌" }
+    success { echo "CI/CD dployed succesfully to Vercel " }
+    failure { echo "failed " }
   }
 }
