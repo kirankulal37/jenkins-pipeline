@@ -23,7 +23,6 @@ pipeline {
     stage('Build') {
       steps {
         sh 'npm run build'
-        archiveArtifacts artifacts: 'build/**', fingerprint: true
       }
     }
 
