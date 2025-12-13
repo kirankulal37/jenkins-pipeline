@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/kirankulal37/jenkins-pipeline.git', branch: 'main'
+        checkout scm
       }
     }
 
